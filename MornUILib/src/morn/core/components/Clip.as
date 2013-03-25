@@ -1,20 +1,22 @@
 /**
- * Version 1.0.0 Alpha https://github.com/yungzhu/morn
+ * Morn UI Version 1.1.0313 http://code.google.com/p/morn https://github.com/yungzhu/morn
  * Feedback yungzhu@gmail.com http://weibo.com/newyung
  */
 package morn.core.components {
 	import flash.display.Bitmap;
 	import flash.display.BitmapData;
 	import flash.events.Event;
+	import morn.core.events.UIEvent;
 	import morn.core.handlers.Handler;
+	import morn.core.managers.ResLoader;
 	import morn.core.utils.BitmapUtils;
 	import morn.core.utils.StringUtils;
 	import morn.editor.core.IClip;
 	
 	/**图片加载后触发(类库中已经存在不会触发)*/
-	[Event(name="imageLoaded",type="morn.core.components.UIEvent")]
+	[Event(name="imageLoaded",type="morn.core.events.UIEvent")]
 	/**当前帧发生变化后触发*/
-	[Event(name="frameChanged",type="morn.core.components.UIEvent")]
+	[Event(name="frameChanged",type="morn.core.events.UIEvent")]
 	
 	/**位图剪辑*/
 	public class Clip extends Component implements IClip {
@@ -115,18 +117,24 @@ package morn.core.components {
 		
 		/**源位图数据*/
 		public function set bitmapData(value:BitmapData):void {
-			if (value != null) {
+			if (value) {
 				_clips = BitmapUtils.createClips(value, _clipX, _clipY);
 				frame = _frame;
-				_bitmap.width = _width = (_width == 0 ? _clips[0].width : _width);
-				_bitmap.height = _height = (_height == 0 ? _clips[0].height : _height);
+				_contentWidth = _clips[0].width;
+				_contentHeight = _clips[0].height;
+				_bitmap.width = width;
+				_bitmap.height = height;
 			}
 		}
 		
-		override protected function changeSize():void {
+		override public function set width(value:Number):void {
+			super.width = value;
 			_bitmap.width = _width;
+		}
+		
+		override public function set height(value:Number):void {
+			super.height = value;
 			_bitmap.height = _height;
-			super.changeSize();
 		}
 		
 		/**当前帧*/
@@ -136,7 +144,7 @@ package morn.core.components {
 		
 		public function set frame(value:int):void {
 			_frame = value;
-			if (_clips != null) {
+			if (_clips) {
 				_frame = (_frame < _clips.length && _frame > -1) ? _frame : 0;
 				_bitmap.bitmapData = _clips[_frame];
 				sendEvent(UIEvent.FRAME_CHANGED);
@@ -246,6 +254,15 @@ package morn.core.components {
 				frame = value as int;
 			} else {
 				super.dataSource = value;
+			}
+		}
+		
+		/**销毁资源*/
+		public function destroy(clearFromLoader:Boolean = false):void {
+			App.asset.destroyClips(_url);
+			_bitmap.bitmapData = null;
+			if (clearFromLoader) {
+				ResLoader.clearResLoaded(_url);
 			}
 		}
 	}

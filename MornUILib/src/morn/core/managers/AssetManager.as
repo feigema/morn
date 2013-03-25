@@ -1,5 +1,5 @@
 /**
- * Version 1.0.0 Alpha https://github.com/yungzhu/morn
+ * Morn UI Version 1.1.0313 http://code.google.com/p/morn https://github.com/yungzhu/morn
  * Feedback yungzhu@gmail.com http://weibo.com/newyung
  */
 package morn.core.managers {
@@ -69,13 +69,13 @@ package morn.core.managers {
 		
 		/**缓存位图数据*/
 		public function cacheBitmapData(name:String, bmd:BitmapData):void {
-			if (bmd != null) {
+			if (bmd) {
 				_bmdMap[name] = bmd;
 			}
 		}
 		
 		/**销毁位图数据*/
-		public function destoryBitmapData(name:String):void {
+		public function destroyBitmapData(name:String):void {
 			var bmd:BitmapData = _bmdMap[name];
 			if (bmd) {
 				delete _bmdMap[name];
@@ -85,8 +85,20 @@ package morn.core.managers {
 		
 		/**缓存切片资源*/
 		public function cacheClips(name:String, clips:Vector.<BitmapData>):void {
-			if (clips != null) {
+			if (clips) {
 				_clipsMap[name] = clips;
+			}
+		}
+		
+		/**销毁切片位图数据*/
+		public function destroyClips(name:String):void {
+			var clips:Vector.<BitmapData> = _clipsMap[name];
+			if (clips) {
+				for each (var item:BitmapData in clips) {
+					item.dispose();
+				}
+				clips.length = 0;
+				delete _clipsMap[name];
 			}
 		}
 	}

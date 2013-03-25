@@ -1,9 +1,10 @@
 /**
- * Version 1.0.0 Alpha https://github.com/yungzhu/morn
+ * Morn UI Version 1.1.0226 http://code.google.com/p/morn https://github.com/yungzhu/morn
  * Feedback yungzhu@gmail.com http://weibo.com/newyung
  */
 package morn.core.components {
 	import flash.events.Event;
+	import morn.core.handlers.Handler;
 	
 	/**值改变后触发*/
 	[Event(name="change",type="flash.events.Event")]
@@ -16,6 +17,7 @@ package morn.core.components {
 		protected var _value:Number = 0.5;
 		protected var _label:String;
 		protected var _barLabel:Label;
+		protected var _changeHandler:Handler;
 		
 		public function ProgressBar(skin:String = null) {
 			this.skin = skin;
@@ -33,6 +35,7 @@ package morn.core.components {
 			_barLabel.align = "center";
 			_barLabel.stroke = "0x004080";
 			_barLabel.color = 0xffffff;
+			sizeGrid = "4,4,4,4";
 		}
 		
 		/**皮肤*/
@@ -45,9 +48,16 @@ package morn.core.components {
 				_skin = value;
 				_bg.url = _skin;
 				_bar.url = _skin + "$bar";
-				width = _width == 0 ? _bg.width : _width;
-				height = _height == 0 ? _bg.height : _height;
+				_contentWidth = _bg.width;
+				_contentHeight = _bg.height;
+				callLater(changeLabelPoint);
+				callLater(changeValue);
 			}
+		}
+		
+		protected function changeLabelPoint():void {
+			_barLabel.x = (width - _barLabel.width) * 0.5;
+			_barLabel.y = (height - _barLabel.height) * 0.5 - 2;
 		}
 		
 		/**当前值(0-1)*/
@@ -55,17 +65,20 @@ package morn.core.components {
 			return _value;
 		}
 		
-		public function set value(value:Number):void {
-			if (_value != value) {
-				value = value > 1 ? 1 : value < 0 ? 0 : value;
-				_value = value;
+		public function set value(num:Number):void {
+			if (_value != num) {
+				num = num > 1 ? 1 : num < 0 ? 0 : num;
+				_value = num;
 				sendEvent(Event.CHANGE);
+				if (_changeHandler != null) {
+					_changeHandler.executeWith([num]);
+				}
 				callLater(changeValue);
 			}
 		}
 		
 		protected function changeValue():void {
-			_bar.width = _width * _value;
+			_bar.width = width * _value;
 		}
 		
 		/**标签*/
@@ -102,7 +115,7 @@ package morn.core.components {
 		override public function set width(value:Number):void {
 			super.width = value;
 			_bg.width = _width;
-			_barLabel.x = (_width - _barLabel.width) * 0.5;
+			callLater(changeLabelPoint);
 			callLater(changeValue);
 		}
 		
@@ -110,7 +123,7 @@ package morn.core.components {
 			super.height = value;
 			_bg.height = _height;
 			_bar.height = _height;
-			_barLabel.y = (_height - _barLabel.height) * 0.5 - 2;
+			callLater(changeLabelPoint);
 		}
 		
 		override public function set dataSource(value:Object):void {

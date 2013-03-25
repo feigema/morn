@@ -1,12 +1,12 @@
 /**
- * Version 1.0.0 Alpha https://github.com/yungzhu/morn
+ * Morn UI Version 1.2.0310 http://code.google.com/p/morn https://github.com/yungzhu/morn
  * Feedback yungzhu@gmail.com http://weibo.com/newyung
  */
 package morn.core.components {
-	import morn.core.handlers.Handler;
+	import morn.core.events.UIEvent;
 	
 	/**视图创建完成后触发*/
-	[Event(name="viewCreated",type="morn.core.components.UIEvent")]
+	[Event(name="viewCreated",type="morn.core.events.UIEvent")]
 	
 	/**视图*/
 	public class View extends Box {
@@ -17,7 +17,6 @@ package morn.core.components {
 		
 		protected function createView(xml:XML):void {
 			createComps(xml);
-			sendEvent(UIEvent.VIEW_CREATED);
 		}
 		
 		protected function getCompsInstance(name:String):Component {
@@ -43,7 +42,7 @@ package morn.core.components {
 			if (type != "List") {
 				for (var j:int = 0, n:int = xml.children().length(); j < n; j++) {
 					var child:Component = createComps(xml.children()[j], false);
-					if (child != null) {
+					if (child) {
 						comp.addChild(child);
 					}
 				}

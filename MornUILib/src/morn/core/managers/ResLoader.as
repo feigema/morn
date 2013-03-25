@@ -1,9 +1,10 @@
 /**
- * Version 1.0.0 Alpha https://github.com/yungzhu/morn
+ * Morn UI Version 1.1.0313 http://code.google.com/p/morn https://github.com/yungzhu/morn
  * Feedback yungzhu@gmail.com http://weibo.com/newyung
  */
 package morn.core.managers {
 	import flash.display.Bitmap;
+	import flash.display.BitmapData;
 	import flash.display.Loader;
 	import flash.events.Event;
 	import flash.events.HTTPStatusEvent;
@@ -26,6 +27,7 @@ package morn.core.managers {
 		public static const AMF:uint = 2;
 		public static const TXT:uint = 3;
 		public static const DB:uint = 4;
+		public static const BYTE:uint = 5;
 		private static var _loadedMap:Object = {};
 		private var _loader:Loader = new Loader();
 		private var _urlLoader:URLLoader = new URLLoader();
@@ -70,7 +72,7 @@ package morn.core.managers {
 				_loader.load(_urlRequest, _loaderContext);
 				return;
 			}
-			if (_type == BMD || _type == AMF || _type == DB) {
+			if (_type == BMD || _type == AMF || _type == DB || _type == BYTE) {
 				_urlLoader.dataFormat = URLLoaderDataFormat.BINARY;
 				_urlLoader.load(_urlRequest);
 				return;
@@ -123,6 +125,12 @@ package morn.core.managers {
 				endLoad(_loadedMap[_url] = bytes.readObject());
 				return;
 			}
+			if (_type == BYTE) {
+				var byte:ByteArray = _urlLoader.data as ByteArray;
+				byte.uncompress();
+				endLoad(_loadedMap[_url] = byte);
+				return;
+			}
 			if (_type == TXT) {
 				endLoad(_loadedMap[_url] = _urlLoader.data);
 				return;
@@ -167,9 +175,20 @@ package morn.core.managers {
 			}
 		}
 		
-		/**获取已经加载的资源*/
+		/**获取已加载的资源*/
 		public static function getResLoaded(url:String):* {
 			return _loadedMap[url];
+		}
+		
+		/**删除已加载的资源*/
+		public static function clearResLoaded(url:String):void {
+			var res:Object = _loadedMap[url];
+			if (res is BitmapData) {
+				BitmapData(res).dispose();
+			} else if (res is Bitmap) {
+				Bitmap(res).bitmapData.dispose();
+			}
+			delete _loadedMap[url];
 		}
 	}
 }

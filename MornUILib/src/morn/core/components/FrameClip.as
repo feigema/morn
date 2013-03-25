@@ -1,15 +1,16 @@
 /**
- * Version 1.0.0 Alpha https://github.com/yungzhu/morn
+ * Morn UI Version 1.2.0309 http://code.google.com/p/morn https://github.com/yungzhu/morn
  * Feedback yungzhu@gmail.com http://weibo.com/newyung
  */
 package morn.core.components {
 	import flash.display.MovieClip;
 	import flash.events.Event;
+	import morn.core.events.UIEvent;
 	import morn.core.handlers.Handler;
 	import morn.editor.core.IClip;
 	
 	/**当前帧发生变化后触发*/
-	[Event(name="frameChanged",type="morn.core.components.UIEvent")]
+	[Event(name="frameChanged",type="morn.core.events.UIEvent")]
 	
 	/**矢量动画类(为了统一，frame从0开始与movieclip不同)*/
 	public class FrameClip extends Component implements IClip {
@@ -64,26 +65,34 @@ package morn.core.components {
 		
 		public function set mc(value:MovieClip):void {
 			if (_mc != value) {
-				if (_mc != null && _mc.parent) {
+				if (_mc && _mc.parent) {
 					_mc.stop();
 					removeChild(_mc);
 				}
 				_mc = value;
-				if (_mc != null) {
+				if (_mc) {
 					_mc.stop();
 					addChild(_mc);
-					mc.width = _width = _width == 0 ? mc.width : _width;
-					mc.height = _height = _height == 0 ? mc.height : _height;
+					_contentWidth = mc.width;
+					_contentHeight = mc.height;
+					mc.width = width;
+					mc.height = height;
 				}
 			}
 		}
 		
-		override protected function changeSize():void {
+		override public function set width(value:Number):void {
+			super.width = value;
 			if (_mc) {
 				_mc.width = _width;
+			}
+		}
+		
+		override public function set height(value:Number):void {
+			super.height = value;
+			if (_mc) {
 				_mc.height = _height;
 			}
-			super.changeSize();
 		}
 		
 		/**当前帧(为了统一，frame从0开始，原始的movieclip从1开始)*/
@@ -93,11 +102,11 @@ package morn.core.components {
 		
 		public function set frame(value:int):void {
 			_frame = value;
-			if (_mc != null) {
+			if (_mc) {
 				_frame = (_frame < _mc.totalFrames && _frame > -1) ? _frame : 0;
 				_mc.gotoAndStop(_frame + 1);
 				sendEvent(UIEvent.FRAME_CHANGED);
-				if (_to != null && (_mc.currentFrame - 1 == _to || _mc.currentLabel == _to)) {
+				if (_to && (_mc.currentFrame - 1 == _to || _mc.currentLabel == _to)) {
 					stop();
 					_to = null;
 					if (_complete != null) {

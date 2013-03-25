@@ -1,5 +1,5 @@
 /**
- * Version 1.0.0 Alpha https://github.com/yungzhu/morn
+ * Morn UI Version 1.2.0309 http://code.google.com/p/morn https://github.com/yungzhu/morn
  * Feedback yungzhu@gmail.com http://weibo.com/newyung
  */
 package morn.core.components {
@@ -40,6 +40,14 @@ package morn.core.components {
 			_format = new TextFormat(Styles.fontName, Styles.fontSize, Styles.labelColor);
 		}
 		
+		override public function get mouseEnabled():Boolean {
+			return super.mouseEnabled;
+		}
+		
+		override public function set mouseEnabled(value:Boolean):void {
+			super.mouseEnabled = value;
+		}
+		
 		override protected function createChildren():void {
 			addChild(_bitmap = new Bitmap());
 			addChild(_textField = new TextField());
@@ -65,16 +73,16 @@ package morn.core.components {
 		
 		protected function changeText():void {
 			_textField.defaultTextFormat = _format;
-			_isHtml ? _textField.htmlText = _text : _textField.text = _text;
+			_isHtml ? _textField.htmlText = _text : _textField.text = App.lang.getLang(_text);
 		}
 		
 		override protected function changeSize():void {
-			if (_width != 0) {
+			if (!isNaN(_width)) {
 				_textField.autoSize = TextFieldAutoSize.NONE;
 				_textField.width = _width - _margin[0] - _margin[2];
-				_textField.height = _height == 0 ? 18 : _height - _margin[1] - _margin[3];
+				_textField.height = isNaN(_height) ? 18 : _height - _margin[1] - _margin[3];
 			} else {
-				_width = _height = 0;
+				_width = _height = NaN;
 				_textField.autoSize = TextFieldAutoSize.LEFT;
 			}
 			super.changeSize();
@@ -178,10 +186,8 @@ package morn.core.components {
 		}
 		
 		public function set color(value:Object):void {
-			if (String(_format.color) != String(value)) {
-				_format.color = value;
-				callLater(changeText);
-			}
+			_format.color = value;
+			callLater(changeText);
 		}
 		
 		/**字体类型*/
@@ -295,22 +301,26 @@ package morn.core.components {
 		public function set skin(value:String):void {
 			if (_skin != value) {
 				_skin = value;
-				callLater(changeBitmap);
+				_bitmap.bitmapData = App.asset.getBitmapData(_skin);
+				_contentWidth = _bitmap.bitmapData.width;
+				_contentHeight = _bitmap.bitmapData.height;
 			}
 		}
 		
 		protected function changeBitmap():void {
 			if (StringUtils.isNotEmpty(_skin) && App.asset.hasClass(_skin)) {
-				var bmd:BitmapData = App.asset.getBitmapData(_skin);
-				_width = _width == 0 ? bmd.width : _width;
-				_height = _height == 0 ? bmd.height : _height;
-				_bitmap.bitmapData = BitmapUtils.scale9Bmd(bmd, _sizeGrid, _width, _height);
+				var source:BitmapData = App.asset.getBitmapData(_skin);
+				//清理临时位图数据
+				if (_bitmap.bitmapData && _bitmap.bitmapData != source) {
+					_bitmap.bitmapData.dispose();
+				}
+				_bitmap.bitmapData = BitmapUtils.scale9Bmd(source, _sizeGrid, width, height);
 			}
 		}
 		
 		/**九宫格信息(格式:左边距,上边距,右边距,下边距)*/
 		public function get sizeGrid():String {
-			return _sizeGrid.toString();
+			return _sizeGrid.join(",");
 		}
 		
 		public function set sizeGrid(value:String):void {

@@ -1,5 +1,5 @@
 /**
- * Version 1.0.0 Alpha https://github.com/yungzhu/morn
+ * Morn UI Version 1.1.0224 http://code.google.com/p/morn https://github.com/yungzhu/morn
  * Feedback yungzhu@gmail.com http://weibo.com/newyung
  */
 package morn.core.managers {
@@ -14,7 +14,7 @@ package morn.core.managers {
 		private var _isLoading:Boolean;
 		private var _failRes:Object = {};
 		
-		private function load(url:String, type:uint, complete:Handler = null, progress:Handler = null):void {
+		public function load(url:String, type:uint, complete:Handler = null, progress:Handler = null):void {
 			var resInfo:ResInfo = new ResInfo();
 			resInfo.url = url;
 			resInfo.type = type;
@@ -101,6 +101,11 @@ package morn.core.managers {
 			load(url, ResLoader.DB, complete, progress);
 		}
 		
+		/**加载BYTE*/
+		public function loadBYTE(url:String, complete:Handler = null, progress:Handler = null):void {
+			load(url, ResLoader.BYTE, complete, progress);
+		}
+		
 		/**
 		 * 加载数组里面的资源
 		 * @param arr 简单：["a.swf","b.swf"]，复杂[{url:"a.swf",type:ResLoader.SWF,size:100},{url:"a.png",type:ResLoader.BMD,size:50}]
@@ -131,7 +136,7 @@ package morn.core.managers {
 			
 			function loadAssetsProgress(value:Number, size:int):void {
 				if (progress != null) {
-					var value:Number = (totalLoaded + size * value) / totalSize;
+					value = (totalLoaded + size * value) / totalSize;
 					progress.executeWith([value]);
 				}
 			}

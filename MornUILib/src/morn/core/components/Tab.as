@@ -1,5 +1,5 @@
 /**
- * Version 1.0.0 Alpha https://github.com/yungzhu/morn
+ * Morn UI Version 1.1.0303 http://code.google.com/p/morn https://github.com/yungzhu/morn
  * Feedback yungzhu@gmail.com http://weibo.com/newyung
  */
 package morn.core.components {
@@ -12,7 +12,7 @@ package morn.core.components {
 	
 	/**Tab标签*/
 	public class Tab extends Box implements IItem {
-		protected var _items:Vector.<Button>;
+		protected var _items:Vector.<ISelect>;
 		protected var _selectHandler:Handler;
 		protected var _selectedIndex:int;
 		protected var _skin:String;
@@ -21,6 +21,7 @@ package morn.core.components {
 		protected var _labelStroke:String;
 		protected var _labelSize:Object;
 		protected var _labelBold:Object;
+		protected var _labelMargin:String;
 		
 		public function Tab(labels:String = null, skin:String = null) {
 			this.skin = skin;
@@ -29,9 +30,9 @@ package morn.core.components {
 		
 		/**初始化*/
 		public function initItems():void {
-			_items = new Vector.<Button>();
+			_items = new Vector.<ISelect>();
 			for (var i:int = 0; i < int.MAX_VALUE; i++) {
-				var item:Button = getChildByName("item" + i) as Button;
+				var item:ISelect = getChildByName("item" + i) as ISelect;
 				if (item == null) {
 					break;
 				}
@@ -63,7 +64,7 @@ package morn.core.components {
 		}
 		
 		protected function setSelect(index:int, selected:Boolean):void {
-			if (_items != null && index > -1 && index < _items.length) {
+			if (_items && index > -1 && index < _items.length) {
 				_items[index].selected = selected;
 			}
 		}
@@ -97,7 +98,19 @@ package morn.core.components {
 		public function set labels(value:String):void {
 			if (_labels != value) {
 				_labels = value;
-				callLater(changeLabels);
+				//callLater(changeLabels);
+				removeAllChild();
+				if (StringUtils.isNotEmpty(_labels)) {
+					var a:Array = _labels.split(",");
+					var right:int = 0
+					for (var i:int = 0, n:int = a.length; i < n; i++) {
+						var btn:Button = new Button(_skin, a[i]);
+						btn.name = "item" + i;
+						addElement(btn, right, 0);
+						right += btn.width;
+					}
+				}
+				initItems();
 			}
 		}
 		
@@ -149,45 +162,50 @@ package morn.core.components {
 			}
 		}
 		
+		/**按钮标签边距(格式:左边距,上边距,右边距,下边距)*/
+		public function get labelMargin():String {
+			return _labelMargin;
+		}
+		
+		public function set labelMargin(value:String):void {
+			if (_labelMargin != value) {
+				_labelMargin = value;
+				callLater(changeLabels);
+			}
+		}
+		
 		protected function changeLabels():void {
-			if (StringUtils.isNotEmpty(_labels)) {
-				removeAllChild();
-				var a:Array = _labels.split(",");
-				var right:int = 0
-				for (var i:int = 0, n:int = a.length; i < n; i++) {
-					var item:String = a[i];
-					var btn:Button = _skin != null ? new Button(_skin, item) : new LinkButton(item);
-					btn.name = "item" + i;
-					if (_labelColors) {
-						btn.labelColors = _labelColors;
-					}
-					if (_labelStroke) {
-						btn.labelStroke = _labelStroke;
-					}
-					if (_labelSize) {
-						btn.labelSize = _labelSize;
-					}
-					if (_labelBold) {
-						btn.labelBold = _labelBold;
-					}
-					addElement(btn, right, 0);
-					right += btn.width;
-				}
-				initItems();
+			var right:int = 0
+			for (var i:int = 0, n:int = _items.length; i < n; i++) {
+				var btn:Button = _items[i] as Button;
+				if (_skin)
+					btn.skin = _skin;
+				if (_labelColors)
+					btn.labelColors = _labelColors;
+				if (_labelStroke)
+					btn.labelStroke = _labelStroke;
+				if (_labelSize)
+					btn.labelSize = _labelSize;
+				if (_labelBold)
+					btn.labelBold = _labelBold;
+				if (_labelMargin)
+					btn.labelMargin = _labelMargin;
+				btn.x = right;
+				right += btn.width;
 			}
 		}
 		
 		/**按钮集合*/
-		public function get items():Vector.<Button> {
+		public function get items():Vector.<ISelect> {
 			return _items;
 		}
 		
 		/**选择项*/
-		public function get selection():Button {
+		public function get selection():ISelect {
 			return _selectedIndex > -1 && _selectedIndex < _items.length ? _items[_selectedIndex] : null;
 		}
 		
-		public function set selection(value:Button):void {
+		public function set selection(value:ISelect):void {
 			selectedIndex = _items.indexOf(value);
 		}
 		

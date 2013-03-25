@@ -1,16 +1,18 @@
 /**
- * Version 1.0.0 Alpha https://github.com/yungzhu/morn
+ * Morn UI Version 1.1.0313 http://code.google.com/p/morn https://github.com/yungzhu/morn
  * Feedback yungzhu@gmail.com http://weibo.com/newyung
  */
 package morn.core.components {
 	import flash.display.Bitmap;
 	import flash.display.BitmapData;
+	import morn.core.events.UIEvent;
 	import morn.core.handlers.Handler;
+	import morn.core.managers.ResLoader;
 	import morn.core.utils.BitmapUtils;
 	import morn.core.utils.StringUtils;
 	
 	/**图片被加载后触发*/
-	[Event(name="imageLoaded",type="morn.core.components.UIEvent")]
+	[Event(name="imageLoaded",type="morn.core.events.UIEvent")]
 	
 	/**图像类*/
 	public class Image extends Component {
@@ -42,10 +44,11 @@ package morn.core.components {
 			}
 		}
 		
+		/**源位图数据*/
 		public function set bitmapData(value:BitmapData):void {
 			if (value) {
-				_width = _width == 0 ? value.width : _width;
-				_height = _height == 0 ? value.height : _height;
+				_contentWidth = value.width;
+				_contentHeight = value.height;
 				_bitmap.bitmapData = value;
 				callLater(changeSize);
 			}
@@ -57,12 +60,17 @@ package morn.core.components {
 		}
 		
 		override protected function changeSize():void {
-			if (_bitmap.bitmapData != null) {
+			if (_bitmap.bitmapData) {
 				if (_sizeGrid == null) {
-					_bitmap.width = _width;
-					_bitmap.height = _height;
+					_bitmap.width = width;
+					_bitmap.height = height;
 				} else {
-					_bitmap.bitmapData = BitmapUtils.scale9Bmd(App.asset.getBitmapData(_url), _sizeGrid, _width, _height);
+					var source:BitmapData = App.asset.getBitmapData(_url);
+					//清理临时位图数据
+					if (_bitmap.bitmapData && _bitmap.bitmapData != source) {
+						_bitmap.bitmapData.dispose();
+					}
+					_bitmap.bitmapData = BitmapUtils.scale9Bmd(source, _sizeGrid, width, height);
 				}
 				super.changeSize();
 			}
@@ -70,7 +78,10 @@ package morn.core.components {
 		
 		/**九宫格信息(格式:左边距,上边距,右边距,下边距)*/
 		public function get sizeGrid():String {
-			return _sizeGrid.toString();
+			if (_sizeGrid) {
+				return _sizeGrid.join(",");
+			}
+			return null;
 		}
 		
 		public function set sizeGrid(value:String):void {
@@ -96,6 +107,15 @@ package morn.core.components {
 				url = value as String;
 			} else {
 				super.dataSource = value;
+			}
+		}
+		
+		/**销毁资源*/
+		public function destroy(clearFromLoader:Boolean = false):void {
+			App.asset.destroyBitmapData(_url);
+			_bitmap.bitmapData = null;
+			if (clearFromLoader) {
+				ResLoader.clearResLoaded(_url);
 			}
 		}
 	}

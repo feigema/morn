@@ -1,5 +1,5 @@
 /**
- * Version 1.0.0 Alpha https://github.com/yungzhu/morn
+ * Morn UI Version 1.2.0309 http://code.google.com/p/morn https://github.com/yungzhu/morn
  * Feedback yungzhu@gmail.com http://weibo.com/newyung
  */
 package morn.core.components {
@@ -9,10 +9,11 @@ package morn.core.components {
 	import flash.events.Event;
 	import flash.events.MouseEvent;
 	import flash.utils.Dictionary;
+	import morn.core.events.UIEvent;
 	import morn.editor.core.IComponent;
 	
 	/**渲染后触发*/
-	[Event(name="renderCompleted",type="morn.core.components.UIEvent")]
+	[Event(name="renderCompleted",type="morn.core.events.UIEvent")]
 	/**重置大小后触发*/
 	[Event(name="resize",type="flash.events.Event")]
 	
@@ -21,13 +22,16 @@ package morn.core.components {
 		protected var _methods:Dictionary = new Dictionary();
 		protected var _x:Number = 0;
 		protected var _y:Number = 0;
-		protected var _width:Number = 0;
-		protected var _height:Number = 0;
+		protected var _width:Number;
+		protected var _height:Number;
+		protected var _contentWidth:Number = 0;
+		protected var _contentHeight:Number = 0;
 		protected var _disabled:Boolean;
 		protected var _tag:Object;
 		protected var _comXml:XML;
 		protected var _dataSource:Object;
 		protected var _toolTip:Object;
+		protected var _mouseChildren:Boolean;
 		
 		public function Component() {
 			mouseChildren = tabEnabled = tabChildren = false;
@@ -55,7 +59,7 @@ package morn.core.components {
 			addEventListener(Event.RENDER, onValidate);
 			//render有一定几率无法触发，这里加上保险处理
 			addEventListener(Event.ENTER_FRAME, onValidate);
-			if (App.stage != null) {
+			if (App.stage) {
 				App.stage.invalidate();
 			}
 		}
@@ -125,10 +129,8 @@ package morn.core.components {
 		}
 		
 		override public function set x(value:Number):void {
-			if (_x != value) {
-				_x = value;
-				super.x = Math.round(value);
-			}
+			_x = value;
+			super.x = Math.round(value);
 		}
 		
 		/**y坐标(显示时四舍五入)*/
@@ -137,10 +139,8 @@ package morn.core.components {
 		}
 		
 		override public function set y(value:Number):void {
-			if (_y != value) {
-				_y = value;
-				super.y = Math.round(value);
-			}
+			_y = value;
+			super.y = Math.round(value);
 		}
 		
 		/**设置组件位置*/
@@ -151,8 +151,10 @@ package morn.core.components {
 		
 		/**宽度(值为0时，宽度为自适应)*/
 		override public function get width():Number {
-			if (_width != 0) {
+			if (!isNaN(_width)) {
 				return _width;
+			} else if (_contentWidth != 0) {
+				return _contentWidth;
 			} else {
 				validate();
 				return super.width;
@@ -168,8 +170,10 @@ package morn.core.components {
 		
 		/**高度(值为0时，高度为自适应)*/
 		override public function get height():Number {
-			if (_height != 0) {
+			if (!isNaN(_height)) {
 				return _height;
+			} else if (_contentHeight != 0) {
+				return _contentHeight;
 			} else {
 				validate();
 				return super.height;
@@ -230,8 +234,13 @@ package morn.core.components {
 		public function set disabled(value:Boolean):void {
 			if (_disabled != value) {
 				_disabled = value;
-				mouseEnabled = !disabled;
+				mouseEnabled = !value;
+				super.mouseChildren = value ? false : _mouseChildren;
 			}
+		}
+		
+		override public function set mouseChildren(value:Boolean):void {
+			_mouseChildren = super.mouseChildren = value;
 		}
 		
 		/**标签(冗余字段，可以用来储存数据)*/
@@ -291,7 +300,7 @@ package morn.core.components {
 		}
 		
 		protected function onRollMouse(e:MouseEvent):void {
-			dispatchEvent(new UIEvent(e.type == MouseEvent.ROLL_OVER ? UIEvent.SHOW_TIP : UIEvent.HIDE_TIP, _toolTip,true));
+			dispatchEvent(new UIEvent(e.type == MouseEvent.ROLL_OVER ? UIEvent.SHOW_TIP : UIEvent.HIDE_TIP, _toolTip, true));
 		}
 	}
 }
